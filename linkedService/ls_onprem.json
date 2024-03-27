@@ -1,0 +1,23 @@
+{
+	"name": "ls_onprem",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Data Source=SRINIDHI\\SQLEXPRESS;Initial Catalog=cloudlogzDB;User ID=sa",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "keyvaultonpremtocloud",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "onpremauth"
+			}
+		},
+		"connectVia": {
+			"referenceName": "onprem-ir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
