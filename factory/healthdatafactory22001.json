@@ -1,0 +1,9 @@
+{
+	"name": "healthdatafactory22001",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "fdda9248-3062-4090-8d4b-a4801043444e",
+		"tenantId": "17f1a87e-2a25-4eaa-b9df-9d439034b080"
+	}
+}

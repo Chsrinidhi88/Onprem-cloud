@@ -5,14 +5,14 @@
 		"annotations": [],
 		"type": "AzureBlobFS",
 		"typeProperties": {
-			"url": "https://storage22001.dfs.core.windows.net/",
+			"url": "https://storage22001.dfs.core.windows.net",
 			"accountKey": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
-					"referenceName": "keyvaultonpremtocloud",
+					"referenceName": "AzureKeyVault1",
 					"type": "LinkedServiceReference"
 				},
-				"secretName": "sacckey"
+				"secretName": "acckeysecret"
 			}
 		}
 	}

@@ -5,7 +5,7 @@
 		"annotations": [],
 		"type": "AzureKeyVault",
 		"typeProperties": {
-			"baseUrl": "https://Keyvault22001.vault.azure.net/"
+			"baseUrl": "https://keyvaultsincremental.vault.azure.net/"
 		}
 	}
 }
