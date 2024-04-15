@@ -1,0 +1,6 @@
+{
+	"name": "migration-IR",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}

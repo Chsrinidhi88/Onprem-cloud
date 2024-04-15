@@ -1,0 +1,185 @@
+{
+	"name": "Onprem",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup1",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "migration_metadata",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup1').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Copy data1",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false,
+									"tableOption": "autoCreate",
+									"disableMetricsCollection": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "migration_sqlserveronprem",
+									"type": "DatasetReference",
+									"parameters": {
+										"table_name": {
+											"value": "@item().table_name",
+											"type": "Expression"
+										},
+										"schema_name": {
+											"value": "@item().schema_name",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "migration_azuresqldb",
+									"type": "DatasetReference",
+									"parameters": {
+										"table_name": {
+											"value": "@item().table_name",
+											"type": "Expression"
+										},
+										"schema_name": {
+											"value": "@item().schema_name",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Stored procedure1",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Copy data1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[migration_sp1]",
+								"storedProcedureParameters": {
+									"schemaName": {
+										"value": {
+											"value": "@item().schema_name",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"tableName": {
+										"value": {
+											"value": "@item().table_name",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"modifiedDate": {
+										"value": "",
+										"type": "Datetime"
+									},
+									"waterMarkCol": {
+										"value": {
+											"value": "@item().WATER_MARK_COL",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDatabase_migration",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2024-04-15T21:25:51Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

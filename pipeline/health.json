@@ -47,10 +47,10 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('metadata').output.relative_path",
+						"value": "@activity('metadata').output.value",
 						"type": "Expression"
 					},
-					"isSequential": true,
+					"isSequential": false,
 					"activities": [
 						{
 							"name": "Copy data1",
@@ -103,7 +103,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"relative_path": {
-											"value": "@item()",
+											"value": "@item().relative_path",
 											"type": "Expression"
 										}
 									}
@@ -112,7 +112,169 @@
 							"outputs": [
 								{
 									"referenceName": "raw",
+									"type": "DatasetReference",
+									"parameters": {
+										"sink_path": {
+											"value": "@item().sink_path",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "hosp",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "ForEach1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dataflow2",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 16,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Get Metadata1",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "hosp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "processed",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems",
+						"exists",
+						"itemName",
+						"itemType"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "adls to sql",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Metadata1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Metadata1').output.childItems",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy data1_copy1",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"wildcardFileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false,
+									"tableOption": "autoCreate",
+									"disableMetricsCollection": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "processed",
 									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "AzureSqlTable1",
+									"type": "DatasetReference",
+									"parameters": {
+										"tab_name": {
+											"value": "@split(item().name,'.' )[0]",
+											"type": "Expression"
+										}
+									}
 								}
 							]
 						}
@@ -121,7 +283,7 @@
 			}
 		],
 		"annotations": [],
-		"lastPublishTime": "2024-04-01T16:21:56Z"
+		"lastPublishTime": "2024-04-07T21:10:22Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }

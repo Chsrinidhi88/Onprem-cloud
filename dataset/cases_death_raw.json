@@ -1,24 +1,17 @@
 {
-	"name": "raw",
+	"name": "cases_death_raw",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureDataLakeStorage1",
 			"type": "LinkedServiceReference"
-		},
-		"parameters": {
-			"sink_path": {
-				"type": "string"
-			}
 		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": {
-					"value": "@dataset().sink_path",
-					"type": "Expression"
-				},
+				"fileName": "cases_deaths.csv",
+				"folderPath": "cases_death",
 				"fileSystem": "raw"
 			},
 			"columnDelimiter": ",",

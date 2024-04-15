@@ -1,0 +1,339 @@
+{
+	"name": "dataflow2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "hospital_raw",
+						"type": "DatasetReference"
+					},
+					"name": "hospital"
+				},
+				{
+					"dataset": {
+						"referenceName": "country_lookup_raw",
+						"type": "DatasetReference"
+					},
+					"name": "countrydim"
+				},
+				{
+					"dataset": {
+						"referenceName": "date_dim_raw",
+						"type": "DatasetReference"
+					},
+					"name": "datedim"
+				},
+				{
+					"dataset": {
+						"referenceName": "testing_raw",
+						"type": "DatasetReference"
+					},
+					"name": "testing"
+				},
+				{
+					"dataset": {
+						"referenceName": "cases_death_raw",
+						"type": "DatasetReference"
+					},
+					"name": "casesdeath"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "processed",
+						"type": "DatasetReference"
+					},
+					"name": "weekly",
+					"rejectedDataLinkedService": {
+						"referenceName": "AzureDataLakeStorage1",
+						"type": "LinkedServiceReference"
+					}
+				},
+				{
+					"dataset": {
+						"referenceName": "processed",
+						"type": "DatasetReference"
+					},
+					"name": "daily"
+				},
+				{
+					"dataset": {
+						"referenceName": "processed",
+						"type": "DatasetReference"
+					},
+					"name": "sink3"
+				},
+				{
+					"dataset": {
+						"referenceName": "processed",
+						"type": "DatasetReference"
+					},
+					"name": "sink4"
+				}
+			],
+			"transformations": [
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "split1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "pivot1"
+				},
+				{
+					"name": "lookup2"
+				},
+				{
+					"name": "pivot2"
+				},
+				{
+					"name": "sort1"
+				},
+				{
+					"name": "sort2"
+				},
+				{
+					"name": "lookup3"
+				},
+				{
+					"name": "lookup4"
+				},
+				{
+					"name": "select2"
+				},
+				{
+					"name": "lookup5"
+				},
+				{
+					"name": "select3"
+				},
+				{
+					"name": "pivot3"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          country as string,",
+				"          indicator as string,",
+				"          date as date,",
+				"          year_week as string,",
+				"          value as double,",
+				"          source as string,",
+				"          url as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> hospital",
+				"source(output(",
+				"          country as string,",
+				"          country_code_2_digit as string,",
+				"          country_code_3_digit as string,",
+				"          continent as string,",
+				"          population as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> countrydim",
+				"source(output(",
+				"          date_key as date,",
+				"          date as date,",
+				"          year as short,",
+				"          month as short,",
+				"          day as short,",
+				"          day_name as string,",
+				"          day_of_year as short,",
+				"          week_of_month as short,",
+				"          week_of_year as short,",
+				"          month_name as string,",
+				"          year_month as integer,",
+				"          year_week as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> datedim",
+				"source(output(",
+				"          country as string,",
+				"          country_code as string,",
+				"          year_week as string,",
+				"          new_cases as integer,",
+				"          tests_done as integer,",
+				"          population as integer,",
+				"          testing_rate as double,",
+				"          positivity_rate as double,",
+				"          testing_data_source as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> testing",
+				"source(output(",
+				"          country as string,",
+				"          country_code as string,",
+				"          continent as string,",
+				"          population as integer,",
+				"          indicator as string,",
+				"          daily_count as short,",
+				"          date as date,",
+				"          rate_14_day as double,",
+				"          source as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> casesdeath",
+				"hospital, countrydim lookup(hospital@country == countrydim@country,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup1",
+				"lookup1 select(mapColumn(",
+				"          country = hospital@country,",
+				"          indicator,",
+				"          reported_date = date,",
+				"          reported_year_week = year_week,",
+				"          source,",
+				"          country_code_2_digit,",
+				"          country_code_3_digit,",
+				"          population",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 split(substring(toString(byName(\"indicator\")), 1, 5)==\"Daily\",",
+				"     substring(toString(byName(\"indicator\")), 1, 6)==\"Weekly\",",
+				"     disjoint: false) ~> split1@(DailyTransformations, weeklyTransformations)",
+				"datedim derive(week_of_year_modified = concat(toString(byName(\"year\")),'-','W',substring(toString(byName(\"year_week\")),5))) ~> derivedColumn1",
+				"derivedColumn1 aggregate(groupBy(week_of_year_modified),",
+				"     week_start_date = min(toString(byName(\"date\"))),",
+				"          week_end_date = max(toString(byName(\"date\")))) ~> aggregate1",
+				"lookup2 pivot(groupBy(country,",
+				"          reported_year_week,",
+				"          source,",
+				"          country_code_2_digit,",
+				"          country_code_3_digit,",
+				"          week_start_date,",
+				"          week_end_date,",
+				"          population),",
+				"     pivotBy(indicator),",
+				"     new_ = count(toString(byName(\"indicator\"))),",
+				"     columnNaming: '$N$V_count',",
+				"     lateral: true) ~> pivot1",
+				"split1@weeklyTransformations, aggregate1 lookup(reported_year_week == week_of_year_modified,",
+				"     multiple: true,",
+				"     broadcast: 'auto')~> lookup2",
+				"split1@DailyTransformations pivot(groupBy(country,",
+				"          reported_year_week,",
+				"          reported_date,",
+				"          country_code_2_digit,",
+				"          country_code_3_digit,",
+				"          population,",
+				"          source),",
+				"     pivotBy(indicator),",
+				"     {} = count(toString(byName(\"indicator\"))),",
+				"     columnNaming: '$N$V_count',",
+				"     lateral: true) ~> pivot2",
+				"pivot2 sort(desc(reported_date, false)) ~> sort1",
+				"pivot1 sort(desc(reported_year_week, false)) ~> sort2",
+				"testing, countrydim lookup(testing@country == countrydim@country,",
+				"     multiple: true,",
+				"     broadcast: 'auto')~> lookup3",
+				"lookup3, aggregate1 lookup(year_week == week_of_year_modified,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup4",
+				"lookup4 select(mapColumn(",
+				"          country = testing@country,",
+				"          year_week,",
+				"          new_cases,",
+				"          tests_done,",
+				"          population = testing@population,",
+				"          testing_rate,",
+				"          positivity_rate,",
+				"          testing_data_source,",
+				"          country_code_2_digit,",
+				"          country_code_3_digit,",
+				"          week_start_date,",
+				"          week_end_date",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"casesdeath, countrydim lookup(casesdeath@country == countrydim@country,",
+				"     multiple: true,",
+				"     broadcast: 'auto')~> lookup5",
+				"lookup5 select(mapColumn(",
+				"          country = casesdeath@country,",
+				"          population = casesdeath@population,",
+				"          indicator,",
+				"          daily_count,",
+				"          reported_date = date,",
+				"          source,",
+				"          country_code_2_digit,",
+				"          country_code_3_digit",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select3",
+				"select3 pivot(groupBy(country,",
+				"          source,",
+				"          country_code_2_digit,",
+				"          country_code_3_digit,",
+				"          reported_date,",
+				"          population),",
+				"     pivotBy(indicator),",
+				"     {} = sum(toInteger(byName(\"daily_count\"))),",
+				"     columnNaming: '$N$V_count',",
+				"     lateral: true) ~> pivot3",
+				"sort2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['weekly_transformated_data.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     outputAssertFailedRows: true,",
+				"     assertFailure_fileSystem: 'processed',",
+				"     assertFailure_folderPath: 'errored_weekly',",
+				"     partitionBy('hash', 1)) ~> weekly",
+				"sort1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Daily_transformationed_data.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> daily",
+				"select2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['testing_transformed_data.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sink3",
+				"pivot3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['cases_death_transformed_data.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sink4"
+			]
+		}
+	}
+}
