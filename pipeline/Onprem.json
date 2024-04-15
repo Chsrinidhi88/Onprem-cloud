@@ -81,7 +81,7 @@
 								"source": {
 									"type": "SqlServerSource",
 									"sqlReaderQuery": {
-										"value": "select * from @{item().schema_name}.@{item().table_name}\n where @{item().water_mark_col} between activity('old watrmark').output.value and activity('new watermark').output.newwm",
+										"value": "select * from @{item().SCHEMA_NAME}.@{item().TABLE_NAME}\n where @{item().WATER_MARK_COL} between activity('old watrmark').output.value and activity('new watermark').output.newwm",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
@@ -93,7 +93,7 @@
 									"upsertSettings": {
 										"useTempDB": true,
 										"keys": {
-											"value": "@item().merge_at",
+											"value": "@item().MERGE_AT",
 											"type": "Expression"
 										}
 									},
@@ -116,11 +116,11 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"table_name": {
-											"value": "@item().table_name",
+											"value": "@item().TABLE_NAME",
 											"type": "Expression"
 										},
 										"schema_name": {
-											"value": "@item().schema_name",
+											"value": "@item().SCHEMA_NAME",
 											"type": "Expression"
 										}
 									}
@@ -132,11 +132,11 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"table_name": {
-											"value": "@item().table_name",
+											"value": "@item().TABLE_NAME",
 											"type": "Expression"
 										},
 										"schema_name": {
-											"value": "@item().schema_name",
+											"value": "@item().SCHEMA_NAME",
 											"type": "Expression"
 										}
 									}
@@ -167,7 +167,7 @@
 								"storedProcedureParameters": {
 									"schemaName": {
 										"value": {
-											"value": "@item().schema_name",
+											"value": "@item().SCHEMA_NAME",
 											"type": "Expression"
 										},
 										"type": "String"
@@ -216,7 +216,7 @@
 								"source": {
 									"type": "AzureSqlSource",
 									"sqlReaderQuery": {
-										"value": "select waterMarkValue from waterMarkTable where tableName='@{item().TABLE_NAME}' \nand schemaName='@{item().schema_name}'\n and waterMarkCol='@{item().WATER_MARK_COL}';",
+										"value": "select waterMarkValue from waterMarkTable where tableName='@{item().TABLE_NAME}' \nand schemaName='@{item().SCHEMA_NAME}'\n and waterMarkCol='@{item().WATER_MARK_COL}';",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
@@ -231,7 +231,7 @@
 											"type": "Expression"
 										},
 										"schema_name": {
-											"value": "@item().schema_name",
+											"value": "@item().SCHEMA_NAME",
 											"type": "Expression"
 										}
 									}
@@ -254,7 +254,7 @@
 								"source": {
 									"type": "AzureSqlSource",
 									"sqlReaderQuery": {
-										"value": "select max(@{item().WATER_MARK_COL})  newwm from \n @{item().schema_name}.@{item().TABLE_NAME};",
+										"value": "select max(@{item().WATER_MARK_COL})  newwm from \n @{item().SCHEMA_NAME}.@{item().TABLE_NAME};",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
@@ -269,7 +269,7 @@
 											"type": "Expression"
 										},
 										"schema_name": {
-											"value": "@item().schema_name",
+											"value": "@item().SCHEMA_NAME",
 											"type": "Expression"
 										}
 									}
