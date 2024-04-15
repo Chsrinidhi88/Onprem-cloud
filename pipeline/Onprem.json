@@ -254,7 +254,7 @@
 								"source": {
 									"type": "AzureSqlSource",
 									"sqlReaderQuery": {
-										"value": "select max(@{item().waterMarkCol})  newwm from \n @{item().schema_name}.@{item().table_name};",
+										"value": "select max(@{item().WATER_MARK_COL})  newwm from \n @{item().schema_name}.@{item().TABLE_NAME};",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
@@ -265,7 +265,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"table_name": {
-											"value": "@item().table_name",
+											"value": "@item().TABLE_NAME",
 											"type": "Expression"
 										},
 										"schema_name": {
