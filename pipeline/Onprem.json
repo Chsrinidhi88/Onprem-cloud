@@ -91,7 +91,11 @@
 									"type": "AzureSqlSink",
 									"writeBehavior": "upsert",
 									"upsertSettings": {
-										"useTempDB": true
+										"useTempDB": true,
+										"keys": {
+											"value": "@item().merge_at",
+											"type": "Expression"
+										}
 									},
 									"sqlWriterUseTableLock": false,
 									"disableMetricsCollection": false
@@ -170,7 +174,7 @@
 									},
 									"tableName": {
 										"value": {
-											"value": "@item().table_name",
+											"value": "@item().TABLE_NAME",
 											"type": "Expression"
 										},
 										"type": "String"
@@ -212,7 +216,7 @@
 								"source": {
 									"type": "AzureSqlSource",
 									"sqlReaderQuery": {
-										"value": "select waterMarkValue from waterMarkTable where tableName='@{item().table_name}' \nand schemaName='@{item().Schema_name}'\n and waterMarkCol='@{item().water_water_col}';",
+										"value": "select waterMarkValue from waterMarkTable where tableName='@{item().TABLE_NAME}' \nand schemaName='@{item().schema_name}'\n and waterMarkCol='@{item().WATER_MARK_COL}';",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
@@ -223,7 +227,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"table_name": {
-											"value": "@item().table_name",
+											"value": "@item().TABLE_NAME",
 											"type": "Expression"
 										},
 										"schema_name": {
