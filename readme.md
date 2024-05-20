@@ -1,4 +1,5 @@
 Below is the architecture:
+
 <img width="437" alt="image" src="https://github.com/Chsrinidhi88/Onprem-cloud/assets/34069596/67b54f63-a495-4965-95d4-5056f7dce2dc">
 
 On-Prem to Cloud Data Migration Architecture Key Take Aways: –
