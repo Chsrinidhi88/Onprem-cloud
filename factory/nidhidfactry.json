@@ -1,0 +1,9 @@
+{
+	"name": "nidhidfactry",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "990fdae2-0bf5-4eaf-9ad0-3ce4725ea763",
+		"tenantId": "17f1a87e-2a25-4eaa-b9df-9d439034b080"
+	}
+}
